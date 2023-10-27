@@ -1,0 +1,29 @@
+name: Build and Push Image
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build and push image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push
+        env:
+          REPO_URI: ghcr.io/agologan/graphql-schema-registry
+        run: |
+          export TAG=$(git rev-parse --short HEAD)
+          docker build -f Dockerfile -t "${REPO_URI}:${TAG}" .
+          docker push "${REPO_URI}:${TAG}"
